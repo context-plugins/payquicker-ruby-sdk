@@ -1,0 +1,117 @@
+
+# Payment Job Updated Webhook
+
+A batch payment job has been updated. See [Batch Payments — Webhook Events](page:webhook-events/webhookevents-batch-payments) for details.
+
+## Signature Verification
+
+This event uses the `HMAC Signature Verifier` for request verification. The event includes an `X-Signature` header that will be validated using your shared `secret-key` to ensure request authenticity.
+
+## Headers
+
+This event's request contains the following headers.
+
+| Name |
+|  --- |
+| Content-Type |
+
+## Payload Type
+
+This event's request payload is of type [PaymentJobUpdatedWebhookRequest](../../../../doc/models/payment-job-updated-webhook-request.md).
+
+## Payload Example
+
+```json
+{
+  "eventType": "BANKACCOUNTS.CREATED",
+  "payload": {
+    "token": "jobs-1151378b-ec9f-44f0-8179-6d6e877430ac",
+    "portalId": "ARCL1BBG6RS1YK8W0",
+    "filename": "API_94ae6946-1891-47a8-bf91-c789ed9de028.txt",
+    "createdAt": "2026-04-06T13:13:24.0000000Z",
+    "notBefore": "2024-07-07T00:00:00.0000000Z",
+    "totalCount": 105,
+    "validCount": 100,
+    "invalidCount": 0,
+    "type": "PAYMENTS",
+    "status": "COMPLETED",
+    "exampleAdditionalProperty": {
+      "key1": "val1",
+      "key2": "val2"
+    }
+  },
+  "timestamp": "2026-02-07T22:23:10Z",
+  "meta": {
+    "meta": {
+      "timezone": "UTC",
+      "language": "en-US",
+      "requestRef": "20260207T231757Z-r1d65bb46d495mgjhC1BL1qvx400000004rg00000000c2uh",
+      "version": "2026.02.01"
+    },
+    "exampleAdditionalProperty": {
+      "key1": "val1",
+      "key2": "val2"
+    }
+  },
+  "exampleAdditionalProperty": {
+    "key1": "val1",
+    "key2": "val2"
+  }
+}
+```
+
+## SDK Usage Example
+
+```ruby
+# Implementation example of handling the `PaymentJobUpdatedWebhook` event (with signature verification) in Rails.
+
+require 'rails'
+require 'action_controller/railtie'
+require 'pq_api_v2'
+
+include PqApiV2
+
+# Define route
+Rails.application.routes.draw do
+  post '/webhooks/receive', to: 'webhooks#receive'
+end
+
+# Define controller
+class WebhooksController < ActionController::API
+  def receive
+    # Step 1: Create the handler using your shared secret key.
+    handler = WebhookEventsHandler.new('your-shared-secret')
+
+    # Step 2: Verify and parse the request into a typed event.
+    # Use the Rails request directly (Rack::Request compatible).
+    event = handler.verify_and_parse_event(request)
+
+    # Step 3: Pattern match on the event types and handle it.
+    if event.is_a?(PaymentJobUpdatedWebhookRequest) && event.event_type == 'PAYMENTJOBS.UPDATED'
+      puts 'PaymentJobUpdatedWebhook received'
+      # TODO: Add paymentjobupdatedwebhook handling
+    elsif event.is_a?(SignatureVerificationFailure)
+      puts 'Signature verification failure received'
+      # TODO: Add signature verification failure handling
+    elsif event.is_a?(UnknownEvent)
+      puts 'Unknown event received'
+      # TODO: Add unknown event handling
+    else
+      puts 'default received'
+      # TODO: Add default handling
+    end
+
+    # Step 4: Return 200 OK to acknowledge receipt.
+    head :ok
+  end
+end
+```
+
+## Accepted Server Responses
+
+The server should responds with one of the following status codes:
+
+| Status Code |
+|  --- |
+| 200 |
+
